@@ -23,16 +23,23 @@ namespace Server.ItSelf
 
             while (true)
             {
-                using (var client = listener.AcceptTcpClient())
-                using (var networkStream = client.GetStream())
-                using (var reader = new StreamReader(networkStream))
+                try
                 {
-                    var firstLine = reader.ReadLine();
-                    for (string line = null; line != string.Empty; line = reader.ReadLine())
-                        ;
+                    using (var client = listener.AcceptTcpClient())
+                    using (var networkStream = client.GetStream())
+                    using (var reader = new StreamReader(networkStream))
+                    {
+                        var firstLine = reader.ReadLine();
+                        for (string line = null; line != string.Empty; line = reader.ReadLine())
+                            ;
 
-                    var request = RequestParser.Parse(firstLine);
-                    _handler.Handle(networkStream, request);
+                        var request = RequestParser.Parse(firstLine);
+                        _handler.Handle(networkStream, request);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex);
                 }
             }
         }
@@ -45,23 +52,37 @@ namespace Server.ItSelf
 
             while (true)
             {
-                var client = await listener.AcceptTcpClientAsync();
-                await ProcessClientAsync(client);
+                try
+                {
+                    var client = await listener.AcceptTcpClientAsync();
+                    var _ = ProcessClientAsync(client);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
             }
         }
 
         private async Task ProcessClientAsync(TcpClient client)
         {
-            using (client)
-            using (var networkStream = client.GetStream())
-            using (var reader = new StreamReader(networkStream))
+            try
             {
-                var firstLine = await reader.ReadLineAsync();
-                for (string line = null; line != string.Empty; line = await reader.ReadLineAsync())
-                    ;
+                using (client)
+                using (var networkStream = client.GetStream())
+                using (var reader = new StreamReader(networkStream))
+                {
+                    var firstLine = await reader.ReadLineAsync();
+                    for (string line = null; line != string.Empty; line = await reader.ReadLineAsync())
+                        ;
 
-                var request = RequestParser.Parse(firstLine);
-                await _handler.HandleAsync(networkStream, request);
+                    var request = RequestParser.Parse(firstLine);
+                    await _handler.HandleAsync(networkStream, request);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
             }
         }
 
@@ -82,16 +103,23 @@ namespace Server.ItSelf
         {
             ThreadPool.QueueUserWorkItem(obj =>
             {
-                using (client)
-                using (var networkStream = client.GetStream())
-                using (var reader = new StreamReader(networkStream))
+                try
                 {
-                    var firstLine = reader.ReadLine();
-                    for (string line = null; line != string.Empty; line = reader.ReadLine())
-                        ;
+                    using (client)
+                    using (var networkStream = client.GetStream())
+                    using (var reader = new StreamReader(networkStream))
+                    {
+                        var firstLine = reader.ReadLine();
+                        for (string line = null; line != string.Empty; line = reader.ReadLine())
+                            ;
 
-                    var request = RequestParser.Parse(firstLine);
-                    _handler.Handle(networkStream, request);
+                        var request = RequestParser.Parse(firstLine);
+                        _handler.Handle(networkStream, request);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine(ex);
                 }
             });
         }

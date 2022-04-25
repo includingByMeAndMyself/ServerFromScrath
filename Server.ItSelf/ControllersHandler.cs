@@ -61,7 +61,7 @@ namespace Server.ItSelf
             else
             {
                 await ResponseWriter.WriteStatusAsync(System.Net.HttpStatusCode.OK, stream);
-                WriteControllerResponse(func(), stream);
+                await WriteControllerResponseAsync(func(), stream);
             }
         }
 
@@ -79,6 +79,28 @@ namespace Server.ItSelf
             else
             {
                 WriteControllerResponse(JsonConvert.SerializeObject(response), stream);
+            }
+        }
+
+        private async Task WriteControllerResponseAsync(object response, Stream stream)
+        {
+            if (response is string str)
+            {
+                using var writer = new StreamWriter(stream, leaveOpen: true);
+                writer.Write(str);
+            }
+            else if (response is byte[] buffer)
+            {
+                stream.Write(buffer, 0, buffer.Length);
+            }
+            else if(response is Task task)
+            {
+                await task;
+                await WriteControllerResponseAsync(task.GetType().GetProperty("Resualt").GetValue(task), stream);
+            }
+            else
+            {
+                await WriteControllerResponseAsync(JsonConvert.SerializeObject(response), stream);
             }
         }
     }
